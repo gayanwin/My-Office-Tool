@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWSDB Data Engine</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
+    <style>
+        :root {
+            --brand-50: #f0f9ff;
+            --brand-100: #e0f2fe;
+            --brand-500: #0ea5e9;
+            --brand-600: #0284c7;
+            --emerald-50: #ecfdf5;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            --rose-50: #fff1f2;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            
+            --success: #10b981;
+            --text-main: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            color: var(--slate-800);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Sidebar */
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.5); 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+        }
+        .brand-section { padding: 24px; display: flex; align-items: center; gap: 14px; }
+        .brand-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--brand-500), var(--brand-600)); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
+        .brand-text h2 { font-size: 15px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.3px;}
+        .brand-text p { font-size: 10px; font-weight: 700; color: var(--brand-600); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;}
+
+        .nav-menu { flex-grow: 1; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--slate-700); background: transparent; border: 1px solid transparent; cursor: pointer; transition: all 0.25s ease; text-align: left; }
+        .nav-link:hover { color: var(--slate-900); background: rgba(255, 255, 255, 0.5); }
+        .nav-link i { font-size: 18px; color: var(--slate-500); transition: all 0.25s ease; }
+        .nav-link.active { background: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.9); color: var(--brand-600); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .nav-link.active i { color: var(--brand-600); }
+
+        .user-profile { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.2); }
+        .user-avatar { width: 36px; height: 36px; border-radius: 12px; background: var(--slate-800); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .user-info h4 { font-size: 13px; font-weight: 700; color: var(--slate-900); line-height: 1.2; }
+        .user-info p { font-size: 11px; color: var(--slate-600); margin-top: 2px;}
+
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; }
+        .view-section { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header & Upload */
+        .section-header { padding: 24px 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.4); display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .header-titles h1 { font-size: 22px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.5px;}
+        .header-titles p { font-size: 13px; color: var(--slate-600); margin-top: 4px; font-weight: 500;}
+
+        .drop-zone { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 14px; cursor: pointer; transition: all 0.3s ease; max-width: 650px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
+        .drop-zone:hover { border-color: var(--brand-400); background: rgba(255, 255, 255, 0.85); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.1); transform: translateY(-1px); }
+        .drop-zone.uploaded { border-color: var(--emerald-400); background: rgba(255, 255, 255, 0.9); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.1); }
+
+        .dz-left { display: flex; align-items: center; gap: 16px; }
+        .dz-icon { width: 42px; height: 42px; border-radius: 12px; background: white; color: var(--slate-600); display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .drop-zone:hover .dz-icon { color: var(--brand-600); transform: scale(1.05); }
+        .dz-text h4 { font-size: 14px; font-weight: 700; color: var(--slate-800); }
+        .dz-text p { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+
+        .dz-right { display: flex; align-items: center; gap: 12px; }
+        .dz-btn { padding: 8px 16px; border-radius: 8px; background: white; color: var(--slate-700); font-size: 12px; font-weight: 700; transition: all 0.3s; border: 1px solid var(--slate-200); box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .drop-zone:hover .dz-btn { background: var(--brand-500); color: white; border-color: var(--brand-500); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
+
+        /* Progress */
+        .prog-cont { max-width: 650px; height: 6px; background: rgba(255, 255, 255, 0.5); border-radius: 10px; overflow: hidden; display: none; margin-top: -10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .prog-bar { height: 100%; background: linear-gradient(90deg, var(--brand-400), var(--brand-600)); width: 0%; transition: width 0.2s ease; border-radius: 10px; }
+
+        /* Success Tick */
+        .success-tick { display: none; }
+        .success-tick-inner { display: flex; align-items: center; gap: 6px; color: var(--emerald-700); font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--emerald-200); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1); }
+
+        /* Tables Grid */
+        .dashboard-grid { flex: 1; display: flex; gap: 24px; padding: 24px 32px; min-height: 0; background: transparent; }
+        .panel { flex: 1; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.04); overflow: hidden; min-width: 0; }
+        .panel-header { padding: 12px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .panel-header span { font-size: 12px; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.5px;}
+        .table-wrapper { flex: 1; overflow: auto; background: rgba(255, 255, 255, 0.2); }
+
+        table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
+        th { padding: 12px 20px; font-size: 11px; font-weight: 700; color: var(--slate-500); border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(255, 255, 255, 0.8); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 10px 20px; font-size: 13px; color: var(--slate-700); border-bottom: 1px solid rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; transition: background 0.2s;}
+        tbody tr:hover td { background: rgba(255, 255, 255, 0.6); }
+
+        .col-code { font-family: 'Courier New', monospace; font-weight: 700; color: var(--brand-600); width: 120px; }
+        .col-amt { text-align: right; font-weight: 700; color: var(--slate-800); width: 110px; }
+        .zero { color: var(--slate-400) !important; font-weight: 500;}
+
+        /* Buttons & Footer */
+        .action-footer { display: none; padding: 20px 32px; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.5); flex-shrink: 0; }
+        
+        .btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; border: none; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .btn-success { background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600)); }
+        .btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-warning:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25); transform: translateY(-1px); }
+        
+        .btn-reset { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.6); font-size: 12px; font-weight: 700; color: var(--slate-700); cursor: pointer; display: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        .btn-reset:hover { background: white; color: var(--slate-900); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); }
+
+        .hidden { display: none !important; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;}
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); border: 2px solid transparent; background-clip: padding-box;}
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand-section">
+            <div class="brand-icon"><i class="ri-database-2-fill"></i></div>
+            <div class="brand-text">
+                <h2>Data Engine</h2>
+                <p>v4.0 Pro</p>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <button onclick="switchTab('aw', this)" class="nav-link active">
+                <i class="ri-file-excel-2-line"></i> Areawise JV
+            </button>
+            <button onclick="switchTab('pb', this)" class="nav-link">
+                <i class="ri-bank-card-line"></i> People's Bank Rec
+            </button>
+            <button onclick="switchTab('sal', this)" class="nav-link">
+                <i class="ri-file-list-3-line"></i> Salary JV
+            </button>
+        </nav>
+
+        <div class="user-profile">
+            <div class="user-avatar">GC</div>
+            <div class="user-info">
+                <h4>Gayan Chinthaka</h4>
+                <p>2067633 (MA)</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- 1. AREA WISE JV VIEW -->
+        <div id="view-aw" class="view-section active">
+            
+            <div class="section-header">
+                <div class="header-titles">
+                    <h1>Areawise Journal Voucher</h1>
+                    <p>Process XLS source files into strictly formatted system CSV data.</p>
+                </div>
+
+                <div id="aw-dropBox" class="drop-zone" onclick="document.getElementById('aw-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon"><i class="ri-upload-cloud-2-fill"></i></div>
+                        <div class="dz-text">
+                            <h4>Upload XLS Source File</h4>
+                            <p id="aw-status">XLS or XLSX Format Supported</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="aw-successTick">
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Processed</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="aw-fileIn" class="hidden" accept=".xlsx, .xls" onchange="AreaWiseApp.handleFile(event)">
+                </div>
+
+                <div class="prog-cont" id="aw-progCont">
+                    <div class="prog-bar" id="aw-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header"><span>Original Excel Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aw-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th>Description</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aw-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="aw-foot" class="action-footer hidden" style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-success" onclick="AreaWiseApp.saveCSV()">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. PEOPLE'S BANK REC VIEW -->
+        <div id="view-pb" class="view-section">
+            
+            <div class="section-header">
+                <div class="header-titles">
+                    <h1>People's Bank Reconciliation</h1>
+                    <p>Extract transactions directly from PDF statements to reconcile records.</p>
+                </div>
+
+                <div id="pb-dropBox" class="drop-zone" onclick="document.getElementById('pb-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon" style="color: var(--rose-600);"><i class="ri-file-pdf-fill"></i></div>
+                        <div class="dz-text">
+                            <h4>Upload Bank Statement</h4>
+                            <p id="pb-status">PDF Files Only</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="pb-successTick">
+                            <div class="success-tick-inner" style="color: var(--rose-600); background-color: var(--rose-50); border-color: #fecdd3;"><i class="ri-check-line"></i> Extracted</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="pb-fileIn" class="hidden" accept=".pdf" onchange="PeoplesBankApp.handleFile(event)">
+                </div>
+
+                <div class="prog-cont" id="pb-progCont">
+                    <div class="prog-bar" id="pb-progBar" style="background-color: var(--rose-500);"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header"><span>Extracted PDF Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pb-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="color: var(--rose-600); text-align: left;">Code</th>
+                                    <th>Description</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pb-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pb-foot" class="action-footer hidden" style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn btn-success" onclick="PeoplesBankApp.saveCSV('092002121', 'RECEIPT')">
+                    <i class="ri-download-2-line"></i> Download Receipt
+                </button>
+                <button class="btn btn-warning" onclick="PeoplesBankApp.saveCSV('092002841', 'NO_PAYMENT')">
+                    <i class="ri-download-2-line"></i> No Payment
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. SALARY JV VIEW -->
+        <div id="view-sal" class="view-section">
+            
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="header-titles">
+                        <h1>Salary JV Master Pro</h1>
+                        <p>Parse salary PDF reports into final accounting formats securely.</p>
+                    </div>
+                    <button id="sal-resetBtn" class="btn-reset" onclick="SalaryJVApp.resetUI()">
+                        <i class="ri-refresh-line"></i> Reset View
+                    </button>
+                </div>
+
+                <div id="sal-dropBox" class="drop-zone" onclick="document.getElementById('sal-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon" style="color: var(--brand-500);"><i class="ri-file-pdf-line"></i></div>
+                        <div class="dz-text">
+                            <h4 id="sal-statusMsg">Upload PDF Source File</h4>
+                            <p id="sal-statusSub">PDF Files Only</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="sal-fileIn" class="hidden" accept=".pdf" onchange="SalaryJVApp.processFile(event)">
+                </div>
+
+                <div class="prog-cont" id="sal-progCont">
+                    <div class="prog-bar" id="sal-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header"><span>PDF Source Preview</span></div>
+                    <div class="table-wrapper">
+                        <table id="sal-pdfTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Raw Code</th>
+                                    <th>Description</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sal-pdfBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header"><span>Processed CSV Result</span></div>
+                    <div class="table-wrapper">
+                        <table id="sal-csvTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th>Name</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sal-csvBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sal-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+                <div style="padding: 6px 12px; background: var(--slate-100); border: 1px solid var(--slate-200); border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--slate-800);">
+                    <span id="sal-totalDisplay">Total: 0.00</span>
+                </div>
+                <button id="sal-dlBtn" class="btn btn-success">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= LOGIC & SCRIPTS ================= -->
+    <script>
+        // Set up global PDF.js worker
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Tab Switching Logic
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('view-' + tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // ==========================================
+        // 1. AREA WISE JV LOGIC MODULE
+        // ==========================================
+        const AreaWiseApp = (() => {
+            let finalData = [];
+
+            function handleFile(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+
+                document.getElementById('aw-successTick').style.display = "none";
+                document.getElementById('aw-progCont').style.display = "block";
+                let bar = document.getElementById('aw-progBar');
+                bar.style.width = "0%";
+
+                let step = 0;
+                let interval = setInterval(() => {
+                    step += 10;
+                    bar.style.width = step + "%";
+                    if(step >= 100) {
+                        clearInterval(interval);
+                        processFile(file);
+                    }
+                }, 50);
+            }
+
+            function processFile(file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const wb = XLSX.read(data, {type: 'array'});
+                        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
+                        
+                        processDataLogic(rows);
+                        
+                        document.getElementById('aw-progCont').style.display = "none";
+                        document.getElementById('aw-successTick').style.display = "block";
+                        document.getElementById('aw-status').innerText = "File Uploaded: " + file.name;
+                    } catch (err) {
+                        alert("Error: File not readable!");
+                        resetUpload();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function processDataLogic(rows) {
+                const src = document.getElementById('aw-srcBody');
+                const proc = document.getElementById('aw-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+                finalData = [];
+
+                rows.forEach((row) => {
+                    let desc = String(row[0] || "").trim();
+                    let code = String(row[4] || "").trim();
+                    let dr = parseFloat(String(row[7] || "0").replace(/,/g, '')) || 0;
+                    let cr = parseFloat(String(row[9] || "0").replace(/,/g, '')) || 0;
+
+                    if(code && (dr > 0 || cr > 0)) {
+                        src.innerHTML += `<tr><td>${desc}</td><td class="col-code">${code}</td><td class="col-amt">${dr.toFixed(2)}</td><td class="col-amt">${cr.toFixed(2)}</td></tr>`;
+
+                        if(code.startsWith("09")) {
+                            let cleanCode = code.replace(/\//g, ""); 
+                            if (cleanCode.includes("211")) cleanCode = "092002111";
+                            else if (cleanCode.includes("273")) cleanCode = "092002731";
+
+                            if (dr === 0 && cr === 0) return; 
+                            let finalDR = (cr > 0) ? 0 : dr; 
+                            finalData.push({c: cleanCode, d: desc, dr: finalDR, cr: cr});
+
+                            proc.innerHTML += `<tr><td class="col-code">${cleanCode}</td><td>${desc}</td><td class="col-amt ${finalDR === 0 ? 'zero' : ''}">${finalDR.toFixed(2)}</td><td class="col-amt ${cr === 0 ? 'zero' : ''}">${cr.toFixed(2)}</td></tr>`;
+                        }
+                    }
+                });
+                if(finalData.length > 0) document.getElementById('aw-foot').classList.remove('hidden');
+            }
+
+            function saveCSV() {
+                let csv = "";
+                finalData.forEach(r => {
+                    csv += `${r.c},"${r.d}",${r.dr.toFixed(2)},${r.cr.toFixed(2)}\n`;
+                });
+                const blob = new Blob([csv], {type: 'text/csv'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "Areawise_JV_System.csv";
+                a.click();
+            }
+
+            function resetUpload() {
+                document.getElementById('aw-progCont').style.display = "none";
+                document.getElementById('aw-successTick').style.display = "none";
+                document.getElementById('aw-status').innerText = "XLS File Only";
+            }
+
+            return { handleFile, saveCSV, resetUpload };
+        })();
+
+        // ==========================================
+        // 2. PEOPLE'S BANK REC LOGIC MODULE
+        // ==========================================
+        const PeoplesBankApp = (() => {
+            let finalData = [];
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            async function handleFile(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+
+                document.getElementById('pb-srcBody').innerHTML = "";
+                document.getElementById('pb-procBody').innerHTML = "";
+                document.getElementById('pb-foot').classList.add('hidden');
+                document.getElementById('pb-successTick').style.display = "none";
+                document.getElementById('pb-progCont').style.display = "block";
+                document.getElementById('pb-progBar').style.width = "0%";
+                document.getElementById('pb-status').innerText = "Processing PDF...";
+                
+                finalData = [];
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+                        for(let i=1; i<=pdf.numPages; i++) {
+                            let p = Math.round((i / pdf.numPages) * 100);
+                            document.getElementById('pb-progBar').style.width = p + '%';
+
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            
+                            let lines = {};
+                            textContent.items.forEach(item => {
+                                let y = Math.round(item.transform[5]);
+                                let existingY = Object.keys(lines).find(k => Math.abs(k - y) <= 4); 
+                                if(existingY) lines[existingY].push(item);
+                                else lines[y] = [item];
+                            });
+
+                            let sortedY = Object.keys(lines).sort((a, b) => b - a);
+                            sortedY.forEach(y => {
+                                let items = lines[y].sort((a, b) => a.transform[4] - b.transform[4]);
+                                let lineText = items.map(it => it.str).join(" ");
+
+                                let dateMatch = lineText.match(/^(\d{2}\/\d{2}\/\d{4})/);
+                                if (dateMatch) {
+                                    let amounts = lineText.match(/[-]?\d{1,3}(?:,\d{3})*\.\d{2}/g);
+                                    if (amounts && amounts.length >= 2) {
+                                        let balance = amounts[amounts.length - 1]; 
+                                        if (balance !== "0.00") {
+                                            let val = parseFloat(amounts[0].replace(/,/g, ''));
+                                            if (val > 0) {
+                                                let d = dateMatch[1].split('/');
+                                                finalData.push({
+                                                    raw: dateMatch[1],
+                                                    obj: new Date(d[2], d[1]-1, d[0]),
+                                                    amt: val
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        
+                        finalData.sort((a, b) => a.obj - b.obj);
+                        
+                        document.getElementById('pb-progCont').style.display = "none";
+                        document.getElementById('pb-successTick').style.display = "block";
+                        document.getElementById('pb-status').innerText = "Processed: " + file.name;
+                        
+                        displayData();
+
+                    } catch (err) {
+                        alert("PDF Reading Error!");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = "";
+            }
+
+            function displayData() {
+                const src = document.getElementById('pb-srcBody');
+                const proc = document.getElementById('pb-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+
+                finalData.forEach(r => {
+                    let d = r.raw.split('/');
+                    let fDate = `${d[2]} - ${months[parseInt(d[1])-1]} - ${d[0]}`;
+                    
+                    src.innerHTML += `<tr><td>${r.raw}</td><td class="col-amt">${r.amt.toFixed(2)}</td></tr>`;
+                    proc.innerHTML += `<tr><td class="col-code">092002121</td><td>${fDate}</td><td class="col-amt">${r.amt.toFixed(2)}</td><td class="col-amt">0.00</td></tr>`;
+                });
+
+                if(finalData.length > 0) document.getElementById('pb-foot').classList.remove('hidden');
+            }
+
+            function saveCSV(code, fileName) {
+                let csv = "";
+                finalData.forEach(r => {
+                    let d = r.raw.split('/');
+                    let fDate = `${d[2]} - ${months[parseInt(d[1])-1]} - ${d[0]}`;
+                    
+                    let cArr = code.split('');
+                    if(cArr.length >= 6 && cArr[5] === '0') cArr.splice(5, 1);
+                    let finalCode = cArr.join('');
+
+                    csv += `${finalCode},${fDate},${r.amt.toFixed(2)},0.00\n`;
+                });
+
+                const blob = new Blob([csv], {type: 'text/csv'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = fileName + ".csv";
+                a.click();
+            }
+
+            return { handleFile, saveCSV };
+        })();
+
+        // ==========================================
+        // 3. SALARY JV LOGIC MODULE
+        // ==========================================
+        const SalaryJVApp = (() => {
+            let csvData = [];
+            const mapping = { "09002": "092000909", "09201": "09217", "09202": "09207", "09206": "09239", "09226": "092000919", "09234": "092000919" };
+            const segments = ["0641", "0642", "0651", "0655", "0656", "0645", "0668"];
+            const allowedPrefixes = ["09002", "09200", "09201", "09202", "09206", "09207", "09208", "09211", "09213", "09217", "09224", "09226", "09227", "09233", "09234", "09239", "09240", "09241", "09242"];
+
+            async function processFile(e) {
+                const file = e.target.files[0]; if (!file) return;
+                
+                document.getElementById('sal-statusMsg').innerText = "Processing...";
+                document.getElementById('sal-statusSub').classList.add('hidden');
+                document.getElementById('sal-progCont').style.display = "block";
+                document.getElementById('sal-progBar').style.width = "40%";
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const pdf = await pdfjsLib.getDocument({data: new Uint8Array(this.result)}).promise;
+                        let allLines = [];
+                        document.getElementById('sal-progBar').style.width = "70%";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const text = await page.getTextContent();
+                            let pageLines = {};
+                            text.items.forEach(item => {
+                                let y = Math.round(item.transform[5]);
+                                if (!pageLines[y]) pageLines[y] = [];
+                                pageLines[y].push(item.str);
+                            });
+                            Object.keys(pageLines).sort((a,b) => b-a).forEach(y => allLines.push(pageLines[y].join(" ")));
+                        }
+                        
+                        document.getElementById('sal-progBar').style.width = "100%";
+                        generateResult(allLines);
+                        
+                        document.getElementById('sal-statusMsg').innerText = "Completed!";
+                        document.getElementById('sal-statusMsg').style.color = "var(--success)";
+                        document.getElementById('sal-dropBox').classList.add('uploaded');
+                        document.getElementById('sal-resetBtn').style.display = "block";
+                        document.getElementById('sal-progCont').classList.add('hidden');
+                        
+                    } catch (err) { alert("Error!"); }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function generateResult(lines) {
+                let pdfHTML = ""; let csvHTML = "";
+                csvData = []; 
+                let totalInCents = 0;
+
+                lines.forEach(line => {
+                    const match = line.match(/(.+?)\s+([\d,]+\.\d{2})\s+((?:\d\s*){8,}\d)/) || 
+                                  line.match(/((?:\d\s*){8,}\d)\s+(.+?)\s+([\d,]+\.\d{2})/);
+                    if (match) {
+                        let name, amt, raw;
+                        if (line.match(/(.+?)\s+([\d,]+\.\d{2})\s+((?:\d\s*){8,}\d)/)) {
+                            name = match[1].trim(); amt = match[2]; raw = match[3].trim();
+                        } else {
+                            raw = match[1].trim(); name = match[2].trim(); amt = match[3];
+                        }
+
+                        let clean = raw.replace(/\s+/g, '');
+                        if (segments.some(s => clean.startsWith(s)) && clean.length >= 10) clean = clean.slice(-5) + clean.slice(0, -5);
+                        if (!allowedPrefixes.includes(clean.substring(0, 5))) return; 
+
+                        pdfHTML += `<tr><td class="col-code">${raw}</td><td>${name}</td><td class="col-amt">${amt}</td></tr>`;
+
+                        let changed = false;
+                        let processCode = clean;
+                        if (processCode[5] === '0') processCode = processCode.slice(0, 5) + processCode.slice(6);
+                        if (mapping[processCode.slice(0, 5)]) { processCode = mapping[processCode.slice(0, 5)] + processCode.slice(5); changed = true; }
+
+                        let finalName = changed ? `${name}-${raw}` : name;
+                        let debitValue = Math.round(parseFloat(amt.replace(/,/g, '')) * 100);
+                        totalInCents += debitValue;
+
+                        csvData.push([processCode.substring(0, 9), finalName, (debitValue/100).toFixed(2), "0.00"]);
+                        csvHTML += `<tr><td class="col-code">${processCode.substring(0, 9)}</td><td>${finalName}</td><td class="col-amt">${(debitValue/100).toFixed(2)}</td><td class="col-amt">0.00</td></tr>`;
+                    }
+                });
+
+                let finalTotal = (totalInCents / 100);
+                document.getElementById("sal-pdfBody").innerHTML = pdfHTML;
+                document.getElementById("sal-csvBody").innerHTML = csvHTML;
+                document.getElementById('sal-totalDisplay').innerText = "Total: " + finalTotal.toLocaleString('en-US', {minimumFractionDigits:2});
+                document.getElementById('sal-footer').classList.remove('hidden');
+
+                document.getElementById('sal-dlBtn').onclick = () => {
+                    let content = csvData.map(r => r.join(",")).join("\n") + `\n092000009,Salary JV Month Of February,0.00,${finalTotal.toFixed(2)}`;
+                    let blob = new Blob([content], {type: 'text/csv'});
+                    let a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "JV_Filtered_Final.csv";
+                    a.click();
+                };
+            }
+
+            function resetUI() {
+                // Revert UI to initial upload state
+                document.getElementById('sal-pdfBody').innerHTML = "";
+                document.getElementById('sal-csvBody').innerHTML = "";
+                document.getElementById('sal-footer').classList.add('hidden');
+                
+                let msg = document.getElementById('sal-statusMsg');
+                msg.innerText = "Upload PDF Source File";
+                msg.style.color = "var(--text-main)";
+                
+                document.getElementById('sal-statusSub').classList.remove('hidden');
+                document.getElementById('sal-dropBox').classList.remove('uploaded');
+                document.getElementById('sal-resetBtn').style.display = "none";
+                document.getElementById('sal-fileIn').value = "";
+                csvData = [];
+            }
+
+            return { processFile, resetUI };
+        })();
+    </script>
+</body>
+</html>

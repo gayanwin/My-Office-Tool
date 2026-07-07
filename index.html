@@ -66,6 +66,13 @@
             --accent-rgb: 124, 58, 237;
         }
 
+        #view-mtn {
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: #f5f3ff;
+            --accent-rgb: 99, 102, 241;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -158,6 +165,13 @@
             border-left-color: #7c3aed; 
         }
         .nav-link[onclick*="'min'"].active i { color: #7c3aed; }
+
+        .nav-link[onclick*="'mtn'"].active { 
+            color: #6366f1; 
+            background: rgba(99, 102, 241, 0.08); 
+            border-left-color: #6366f1; 
+        }
+        .nav-link[onclick*="'mtn'"].active i { color: #6366f1; }
 
         .user-profile { 
             padding: 16px 20px; 
@@ -332,6 +346,33 @@
         tbody tr:hover td { background: var(--slate-50); }
 
         .col-code { font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent); width: 120px; }
+        
+        .edit-code-input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            width: 100px;
+            transition: all 0.2s ease;
+            text-align: left;
+            border-bottom: 1px dashed var(--accent);
+        }
+        .edit-code-input:hover {
+            border-color: rgba(var(--accent-rgb), 0.2);
+            background: rgba(var(--accent-rgb), 0.03);
+        }
+        .edit-code-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.06);
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15);
+            border-bottom: 2px solid var(--accent);
+        }
+
         .col-amt { text-align: right; font-weight: 700; color: var(--slate-800); width: 110px; }
         .zero { color: var(--slate-300) !important; font-weight: 400;}
 
@@ -421,6 +462,9 @@
             </button>
             <button onclick="switchTab('min', this)" class="nav-link">
                 <i class="ri-file-pdf-line"></i> MIN JV Extractor
+            </button>
+            <button onclick="switchTab('mtn', this)" class="nav-link">
+                <i class="ri-file-transfer-line"></i> MTN JV Extractor
             </button>
         </nav>
 
@@ -739,6 +783,90 @@
                     <span id="min-totalDisplay">Total: 0.00</span>
                 </div>
                 <button id="min-dlBtn" class="btn btn-success">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. MTN JV VIEW -->
+        <div id="view-mtn" class="view-section">
+            
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="header-titles">
+                        <h1>MTN Journal Voucher Extractor</h1>
+                        <p>Process Material Transfer Note (MTN) PDF reports into structured system CSV data. Edit codes inline in the preview before downloading.</p>
+                    </div>
+                    <button id="mtn-resetBtn" class="btn-reset" onclick="MTNApp.resetUI()">
+                        <i class="ri-refresh-line"></i> Reset View
+                    </button>
+                </div>
+
+                <div id="mtn-dropBox" class="drop-zone" onclick="document.getElementById('mtn-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon"><i class="ri-file-pdf-line"></i></div>
+                        <div class="dz-text">
+                            <h4 id="mtn-statusMsg">Upload MTN PDF Statement</h4>
+                            <p id="mtn-statusSub">PDF Format Supported</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="mtn-successTick">
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Extracted</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="mtn-fileIn" class="hidden" accept=".pdf" onchange="MTNApp.processFile(event)">
+                </div>
+
+                <div class="prog-cont" id="mtn-progCont">
+                    <div class="prog-bar" id="mtn-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Left Panel: Extracted MTN Data -->
+                <div class="panel">
+                    <div class="panel-header"><span>Extracted MTN Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>MTN Number</th>
+                                    <th>MTR Number</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mtn-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Right Panel: System CSV Format -->
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format (Editable Codes)</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th>Description</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mtn-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div id="mtn-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+                <div class="total-badge">
+                    <span id="mtn-totalDisplay">Total: 0.00</span>
+                </div>
+                <button id="mtn-dlBtn" class="btn btn-success" onclick="MTNApp.saveCSV()">
                     <i class="ri-download-2-line"></i> Download CSV
                 </button>
             </div>
@@ -1255,6 +1383,206 @@
             }
 
             return { processFile, resetUI };
+        })();
+
+        // ==========================================
+        // MTN JV LOGIC MODULE
+        // ==========================================
+        const MTNApp = (() => {
+            let processedData = []; // Contains { code, desc, debit, credit }
+            let extractedBlocks = []; // Contains { mtn, mtr, amt }
+
+            async function processFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                document.getElementById('mtn-srcBody').innerHTML = "";
+                document.getElementById('mtn-procBody').innerHTML = "";
+                document.getElementById('mtn-footer').classList.add('hidden');
+                document.getElementById('mtn-successTick').style.display = "none";
+                document.getElementById('mtn-progCont').style.display = "block";
+                document.getElementById('mtn-progBar').style.width = "0%";
+                document.getElementById('mtn-statusMsg').innerText = "Processing PDF...";
+                document.getElementById('mtn-statusSub').classList.add('hidden');
+                
+                processedData = [];
+                extractedBlocks = [];
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            let p = Math.round((i / pdf.numPages) * 100);
+                            document.getElementById('mtn-progBar').style.width = p + '%';
+
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            fullText += content.items.map(item => item.str).join(' ') + "\n";
+                        }
+
+                        // Regex matching
+                        const mtnRegex = /(\d{5}-\d{4}-MTN-\d+)/g;
+                        const mtrRegex = /(\d{5}-\d{4}-MTR-\d+)/g;
+                        const totalRegex = /([\d,]+\.\d{2})\s*T\s*O\s*T\s*A\s*L\s*:/g;
+
+                        const mtns = [...fullText.matchAll(mtnRegex)].map(m => m[1]);
+                        const mtrs = [...fullText.matchAll(mtrRegex)].map(m => m[1]);
+                        const totals = [...fullText.matchAll(totalRegex)].map(m => m[1]);
+
+                        const maxBlocks = Math.max(mtns.length, mtrs.length, totals.length);
+
+                        if (maxBlocks === 0) {
+                            alert("No matching MTN/MTR blocks found in this PDF report.");
+                            resetUI();
+                            return;
+                        }
+
+                        // Parse into records
+                        for (let i = 0; i < maxBlocks; i++) {
+                            const mtnVal = mtns[i] || "";
+                            const mtrVal = mtrs[i] || "";
+                            const totalStr = totals[i] || "0.00";
+                            const amt = parseFloat(totalStr.replace(/,/g, '')) || 0.00;
+
+                            extractedBlocks.push({ mtn: mtnVal, mtr: mtrVal, amt: amt });
+                        }
+
+                        // Sort blocks by the numerical suffix of the MTN number (ascending)
+                        extractedBlocks.sort((a, b) => {
+                            const numA = parseInt(a.mtn.split('-').pop()) || 0;
+                            const numB = parseInt(b.mtn.split('-').pop()) || 0;
+                            return numA - numB;
+                        });
+
+                        // Populate double entry processedData
+                        let grandTotalValue = 0;
+                        extractedBlocks.forEach(b => {
+                            if (b.mtn && b.mtr) {
+                                const fromStore = b.mtn.substring(0, 5);
+                                const toStore = b.mtr.substring(0, 5);
+                                
+                                // Format spaced description matching requirements:
+                                // "09217 - 2026 - MTN - 44 [ MTR No - 09213 - 2026 - MTR - 24 ]"
+                                const mtnSpaced = b.mtn.split('-').join(' - ');
+                                const mtrSpaced = b.mtr.split('-').join(' - ');
+                                const desc = `${mtnSpaced} [ MTR No - ${mtrSpaced} ]`;
+
+                                // 1. Debit Row
+                                processedData.push({
+                                    code: `${toStore}2030`,
+                                    desc: desc,
+                                    debit: b.amt,
+                                    credit: 0
+                                });
+
+                                // 2. Credit Row
+                                processedData.push({
+                                    code: `${fromStore}2020`,
+                                    desc: desc,
+                                    debit: 0,
+                                    credit: b.amt
+                                });
+
+                                grandTotalValue += b.amt;
+                            }
+                        });
+
+                        document.getElementById('mtn-progCont').style.display = "none";
+                        document.getElementById('mtn-successTick').style.display = "block";
+                        document.getElementById('mtn-statusMsg').innerText = "Completed!";
+                        document.getElementById('mtn-statusMsg').style.color = "var(--success)";
+                        document.getElementById('mtn-dropBox').classList.add('uploaded');
+                        document.getElementById('mtn-resetBtn').style.display = "block";
+                        
+                        renderTables(grandTotalValue);
+
+                    } catch (err) {
+                        alert("PDF Reading Error!");
+                        resetUI();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = "";
+            }
+
+            function renderTables(grandTotalValue) {
+                const src = document.getElementById('mtn-srcBody');
+                const proc = document.getElementById('mtn-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+
+                // Render Left Panel
+                extractedBlocks.forEach(b => {
+                    src.innerHTML += `<tr>
+                        <td>${b.mtn}</td>
+                        <td>${b.mtr}</td>
+                        <td class="col-amt">${b.amt.toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                // Render Right Panel (editable code cells)
+                processedData.forEach((r, idx) => {
+                    proc.innerHTML += `<tr>
+                        <td>
+                            <input type="text" class="edit-code-input" 
+                                   value="${r.code}" 
+                                   onchange="MTNApp.updateCode(${idx}, this.value)">
+                        </td>
+                        <td>${r.desc}</td>
+                        <td class="col-amt ${r.debit === 0 ? 'zero' : ''}">${r.debit.toFixed(2)}</td>
+                        <td class="col-amt ${r.credit === 0 ? 'zero' : ''}">${r.credit.toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('mtn-totalDisplay').innerText = "Total: " + grandTotalValue.toLocaleString('en-US', {minimumFractionDigits: 2});
+                document.getElementById('mtn-footer').classList.remove('hidden');
+            }
+
+            // Updates the code in the data array when a cell is edited in the browser
+            function updateCode(idx, newCode) {
+                if (processedData[idx]) {
+                    processedData[idx].code = newCode.replace(/\s+/g, ''); // Clean whitespace
+                }
+            }
+
+            function saveCSV() {
+                if (processedData.length === 0) return;
+                
+                let csv = "";
+                processedData.forEach(r => {
+                    csv += `${r.code},"${r.desc}",${r.debit.toFixed(2)},${r.credit.toFixed(2)}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "MTN_JV_System.csv";
+                a.click();
+            }
+
+            function resetUI() {
+                document.getElementById('mtn-srcBody').innerHTML = "";
+                document.getElementById('mtn-procBody').innerHTML = "";
+                document.getElementById('mtn-footer').classList.add('hidden');
+                
+                let msg = document.getElementById('mtn-statusMsg');
+                msg.innerText = "Upload MTN PDF Statement";
+                msg.style.color = "var(--text-main)";
+                
+                document.getElementById('mtn-statusSub').classList.remove('hidden');
+                document.getElementById('mtn-dropBox').classList.remove('uploaded');
+                document.getElementById('mtn-successTick').style.display = "none";
+                document.getElementById('mtn-resetBtn').style.display = "none";
+                document.getElementById('mtn-fileIn').value = "";
+                
+                processedData = [];
+                extractedBlocks = [];
+            }
+
+            return { processFile, renderTables, updateCode, saveCSV, resetUI };
         })();
     </script>
 </body>

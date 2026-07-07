@@ -13,16 +13,6 @@
     
     <style>
         :root {
-            --brand-50: #f0f9ff;
-            --brand-100: #e0f2fe;
-            --brand-500: #0ea5e9;
-            --brand-600: #0284c7;
-            --emerald-50: #ecfdf5;
-            --emerald-500: #10b981;
-            --emerald-600: #059669;
-            --rose-50: #fff1f2;
-            --rose-500: #f43f5e;
-            --rose-600: #e11d48;
             --slate-50: #f8fafc;
             --slate-100: #f1f5f9;
             --slate-200: #e2e8f0;
@@ -35,14 +25,52 @@
             --slate-900: #0f172a;
             
             --success: #10b981;
-            --text-main: #1e293b;
+            --text-main: #334155;
+            --bg-main: #f1f5f9;
+        }
+
+        /* Default accents */
+        :root {
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-light: #f0f9ff;
+            --accent-rgb: 2, 132, 199;
+        }
+
+        /* Per-view accent overrides */
+        #view-aw {
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-light: #f0f9ff;
+            --accent-rgb: 2, 132, 199;
+        }
+
+        #view-pb {
+            --accent: #e11d48;
+            --accent-hover: #be123c;
+            --accent-light: #fff1f2;
+            --accent-rgb: 225, 29, 72;
+        }
+
+        #view-sal {
+            --accent: #059669;
+            --accent-hover: #047857;
+            --accent-light: #ecfdf5;
+            --accent-rgb: 5, 150, 105;
+        }
+
+        #view-min {
+            --accent: #7c3aed;
+            --accent-hover: #6d28d9;
+            --accent-light: #f5f3ff;
+            --accent-rgb: 124, 58, 237;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9effd 100%);
             color: var(--slate-800);
             display: flex;
             height: 100vh;
@@ -52,102 +80,320 @@
 
         /* Sidebar */
         .sidebar { 
-            width: 250px; 
-            background: rgba(255, 255, 255, 0.4); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.5); 
+            width: 240px; 
+            background: #ffffff; 
+            border-right: 1px solid var(--slate-200); 
             display: flex; 
             flex-direction: column; 
             flex-shrink: 0; 
-            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
         }
-        .brand-section { padding: 24px; display: flex; align-items: center; gap: 14px; }
-        .brand-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--brand-500), var(--brand-600)); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
-        .brand-text h2 { font-size: 15px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.3px;}
-        .brand-text p { font-size: 10px; font-weight: 700; color: var(--brand-600); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;}
+        .brand-section { 
+            padding: 16px 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            border-bottom: 1px solid var(--slate-100);
+        }
+        .brand-icon { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover)); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 16px; 
+            box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.25); 
+            transition: all 0.3s ease;
+        }
+        .brand-text h2 { font-size: 13px; font-weight: 700; color: var(--slate-900); letter-spacing: -0.2px;}
+        .brand-text p { font-size: 9px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.5px;}
 
-        .nav-menu { flex-grow: 1; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--slate-700); background: transparent; border: 1px solid transparent; cursor: pointer; transition: all 0.25s ease; text-align: left; }
-        .nav-link:hover { color: var(--slate-900); background: rgba(255, 255, 255, 0.5); }
-        .nav-link i { font-size: 18px; color: var(--slate-500); transition: all 0.25s ease; }
-        .nav-link.active { background: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.9); color: var(--brand-600); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .nav-link.active i { color: var(--brand-600); }
+        .nav-menu { flex-grow: 1; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-link { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 10px 12px; 
+            border-radius: 0 8px 8px 0; 
+            font-size: 12.5px; 
+            font-weight: 600; 
+            color: var(--slate-600); 
+            background: transparent; 
+            border: none;
+            border-left: 3px solid transparent;
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-align: left; 
+        }
+        .nav-link:hover { color: var(--slate-900); background: var(--slate-50); }
+        .nav-link i { font-size: 16px; color: var(--slate-450); transition: all 0.2s ease; }
+        
+        /* Active Tab Color overrides for sidebar buttons */
+        .nav-link[onclick*="'aw'"].active { 
+            color: #0284c7; 
+            background: rgba(2, 132, 199, 0.08); 
+            border-left-color: #0284c7; 
+        }
+        .nav-link[onclick*="'aw'"].active i { color: #0284c7; }
+        
+        .nav-link[onclick*="'pb'"].active { 
+            color: #e11d48; 
+            background: rgba(225, 29, 72, 0.08); 
+            border-left-color: #e11d48; 
+        }
+        .nav-link[onclick*="'pb'"].active i { color: #e11d48; }
+        
+        .nav-link[onclick*="'sal'"].active { 
+            color: #059669; 
+            background: rgba(5, 150, 105, 0.08); 
+            border-left-color: #059669; 
+        }
+        .nav-link[onclick*="'sal'"].active i { color: #059669; }
+        
+        .nav-link[onclick*="'min'"].active { 
+            color: #7c3aed; 
+            background: rgba(124, 58, 237, 0.08); 
+            border-left-color: #7c3aed; 
+        }
+        .nav-link[onclick*="'min'"].active i { color: #7c3aed; }
 
-        .user-profile { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.2); }
-        .user-avatar { width: 36px; height: 36px; border-radius: 12px; background: var(--slate-800); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .user-info h4 { font-size: 13px; font-weight: 700; color: var(--slate-900); line-height: 1.2; }
-        .user-info p { font-size: 11px; color: var(--slate-600); margin-top: 2px;}
+        .user-profile { 
+            padding: 16px 20px; 
+            border-top: 1px solid var(--slate-100); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            background: var(--slate-50); 
+        }
+        .user-avatar { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
+            background: var(--slate-800); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            font-weight: 700; 
+        }
+        .user-info h4 { font-size: 12px; font-weight: 700; color: var(--slate-900); line-height: 1.2; }
+        .user-info p { font-size: 10px; color: var(--slate-500); margin-top: 1px;}
 
         /* Main Content */
-        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; }
-        .view-section { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease; }
+        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+        .view-section { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.25s ease; }
         .view-section.active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Header & Upload */
-        .section-header { padding: 24px 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.4); display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .header-titles h1 { font-size: 22px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.5px;}
-        .header-titles p { font-size: 13px; color: var(--slate-600); margin-top: 4px; font-weight: 500;}
+        .section-header { 
+            padding: 16px 24px; 
+            border-bottom: 1px solid var(--slate-200); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            flex-shrink: 0; 
+            background: #ffffff; 
+        }
+        .header-titles h1 { font-size: 18px; font-weight: 700; color: var(--slate-900); letter-spacing: -0.3px;}
+        .header-titles p { font-size: 12px; color: var(--slate-500); margin-top: 2px; font-weight: 500;}
 
-        .drop-zone { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 14px; cursor: pointer; transition: all 0.3s ease; max-width: 650px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
-        .drop-zone:hover { border-color: var(--brand-400); background: rgba(255, 255, 255, 0.85); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.1); transform: translateY(-1px); }
-        .drop-zone.uploaded { border-color: var(--emerald-400); background: rgba(255, 255, 255, 0.9); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.1); }
+        .drop-zone { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 12px 18px; 
+            background: #ffffff; 
+            border: 2px dashed rgba(var(--accent-rgb), 0.3); 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.25s ease; 
+            max-width: 650px; 
+            width: 100%; 
+        }
+        .drop-zone:hover { 
+            border-color: var(--accent); 
+            background: rgba(var(--accent-rgb), 0.02); 
+            box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.06);
+        }
+        .drop-zone.uploaded { 
+            border-style: solid;
+            border-color: var(--success); 
+            background: #f0fdf4; 
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.06);
+        }
 
-        .dz-left { display: flex; align-items: center; gap: 16px; }
-        .dz-icon { width: 42px; height: 42px; border-radius: 12px; background: white; color: var(--slate-600); display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .drop-zone:hover .dz-icon { color: var(--brand-600); transform: scale(1.05); }
-        .dz-text h4 { font-size: 14px; font-weight: 700; color: var(--slate-800); }
-        .dz-text p { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+        .dz-left { display: flex; align-items: center; gap: 12px; }
+        .dz-icon { 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 8px; 
+            background: rgba(var(--accent-rgb), 0.08); 
+            color: var(--accent); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px; 
+            transition: all 0.25s ease; 
+        }
+        .drop-zone:hover .dz-icon { color: #ffffff; background: var(--accent); transform: scale(1.05); }
+        .drop-zone.uploaded .dz-icon { color: #ffffff; background: var(--success); }
+        .dz-text h4 { font-size: 12.5px; font-weight: 600; color: var(--slate-900); }
+        .dz-text p { font-size: 11px; color: var(--slate-500); margin-top: 1px; }
 
-        .dz-right { display: flex; align-items: center; gap: 12px; }
-        .dz-btn { padding: 8px 16px; border-radius: 8px; background: white; color: var(--slate-700); font-size: 12px; font-weight: 700; transition: all 0.3s; border: 1px solid var(--slate-200); box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-        .drop-zone:hover .dz-btn { background: var(--brand-500); color: white; border-color: var(--brand-500); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
+        .dz-right { display: flex; align-items: center; gap: 10px; }
+        .dz-btn { 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            background: rgba(var(--accent-rgb), 0.05); 
+            color: var(--accent); 
+            font-size: 11px; 
+            font-weight: 700; 
+            transition: all 0.25s; 
+            border: 1px solid rgba(var(--accent-rgb), 0.15); 
+        }
+        .drop-zone:hover .dz-btn { background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.25); }
+        .drop-zone.uploaded .dz-btn { background: var(--success); color: #ffffff; border-color: var(--success); }
 
         /* Progress */
-        .prog-cont { max-width: 650px; height: 6px; background: rgba(255, 255, 255, 0.5); border-radius: 10px; overflow: hidden; display: none; margin-top: -10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
-        .prog-bar { height: 100%; background: linear-gradient(90deg, var(--brand-400), var(--brand-600)); width: 0%; transition: width 0.2s ease; border-radius: 10px; }
+        .prog-cont { max-width: 650px; height: 4px; background: var(--slate-100); border-radius: 4px; overflow: hidden; display: none; margin-top: -6px; }
+        .prog-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s ease; }
 
         /* Success Tick */
         .success-tick { display: none; }
-        .success-tick-inner { display: flex; align-items: center; gap: 6px; color: var(--emerald-700); font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.8); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--emerald-200); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1); }
+        .success-tick-inner { 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+            color: var(--success); 
+            font-size: 11px; 
+            font-weight: 600; 
+            background: #ffffff; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            border: 1px solid #bbf7d0; 
+        }
 
         /* Tables Grid */
-        .dashboard-grid { flex: 1; display: flex; gap: 24px; padding: 24px 32px; min-height: 0; background: transparent; }
-        .panel { flex: 1; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.04); overflow: hidden; min-width: 0; }
-        .panel-header { padding: 12px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .panel-header span { font-size: 12px; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.5px;}
-        .table-wrapper { flex: 1; overflow: auto; background: rgba(255, 255, 255, 0.2); }
+        .dashboard-grid { flex: 1; display: flex; gap: 16px; padding: 16px 24px; min-height: 0; }
+        .panel { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: #ffffff; 
+            border: 1px solid var(--slate-200); 
+            border-top: 3px solid var(--accent);
+            border-radius: 10px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.02); 
+            overflow: hidden; 
+            min-width: 0; 
+        }
+        .panel-header { 
+            padding: 8px 16px; 
+            border-bottom: 1px solid var(--slate-100); 
+            background: var(--slate-50); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            flex-shrink: 0; 
+        }
+        .panel-header span { font-size: 11px; font-weight: 700; color: var(--slate-600); text-transform: uppercase; letter-spacing: 0.5px;}
+        .table-wrapper { flex: 1; overflow: auto; background: #ffffff; }
 
         table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
-        th { padding: 12px 20px; font-size: 11px; font-weight: 700; color: var(--slate-500); border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(255, 255, 255, 0.8); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); text-transform: uppercase; letter-spacing: 0.5px; }
-        td { padding: 10px 20px; font-size: 13px; color: var(--slate-700); border-bottom: 1px solid rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; transition: background 0.2s;}
-        tbody tr:hover td { background: rgba(255, 255, 255, 0.6); }
+        th { 
+            padding: 8px 16px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            color: var(--slate-500); 
+            border-bottom: 1px solid var(--slate-200); 
+            background: rgba(var(--accent-rgb), 0.02); 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+        td { 
+            padding: 8px 16px; 
+            font-size: 12px; 
+            color: var(--slate-700); 
+            border-bottom: 1px solid var(--slate-100); 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            font-weight: 550; 
+            transition: background 0.15s;
+        }
+        tbody tr:hover td { background: var(--slate-50); }
 
-        .col-code { font-family: 'Courier New', monospace; font-weight: 700; color: var(--brand-600); width: 120px; }
+        .col-code { font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent); width: 120px; }
         .col-amt { text-align: right; font-weight: 700; color: var(--slate-800); width: 110px; }
-        .zero { color: var(--slate-400) !important; font-weight: 500;}
+        .zero { color: var(--slate-300) !important; font-weight: 400;}
 
         /* Buttons & Footer */
-        .action-footer { display: none; padding: 20px 32px; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.5); flex-shrink: 0; }
+        .action-footer { 
+            display: none; 
+            padding: 12px 24px; 
+            background: #ffffff; 
+            border-top: 1px solid var(--slate-200); 
+            flex-shrink: 0; 
+        }
         
-        .btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; border: none; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .btn-success { background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600)); }
-        .btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
-        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .btn-warning:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25); transform: translateY(-1px); }
+        .btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            transition: all 0.2s; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .btn-success { background: var(--accent); }
+        .btn-success:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.25); }
+        .btn-warning { background: #f59e0b; }
+        .btn-warning:hover { background: #d97706; }
         
-        .btn-reset { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.6); font-size: 12px; font-weight: 700; color: var(--slate-700); cursor: pointer; display: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
-        .btn-reset:hover { background: white; color: var(--slate-900); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); }
+        .btn-reset { 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            border: 1px solid var(--slate-200); 
+            background: #ffffff; 
+            font-size: 11px; 
+            font-weight: 600; 
+            color: var(--slate-600); 
+            cursor: pointer; 
+            display: none; 
+            transition: all 0.2s;
+        }
+        .btn-reset:hover { background: var(--slate-50); color: var(--slate-900); }
 
         .hidden { display: none !important; }
 
+        .total-badge {
+            padding: 6px 12px; 
+            background: rgba(var(--accent-rgb), 0.06); 
+            border: 1px solid rgba(var(--accent-rgb), 0.15); 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--accent);
+        }
+
         /* Scrollbars */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;}
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); border: 2px solid transparent; background-clip: padding-box;}
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 
     </style>
 </head>
@@ -172,6 +418,9 @@
             </button>
             <button onclick="switchTab('sal', this)" class="nav-link">
                 <i class="ri-file-list-3-line"></i> Salary JV
+            </button>
+            <button onclick="switchTab('min', this)" class="nav-link">
+                <i class="ri-file-pdf-line"></i> MIN JV Extractor
             </button>
         </nav>
 
@@ -272,7 +521,7 @@
 
                 <div id="pb-dropBox" class="drop-zone" onclick="document.getElementById('pb-fileIn').click()">
                     <div class="dz-left">
-                        <div class="dz-icon" style="color: var(--rose-600);"><i class="ri-file-pdf-fill"></i></div>
+                        <div class="dz-icon"><i class="ri-file-pdf-fill"></i></div>
                         <div class="dz-text">
                             <h4>Upload Bank Statement</h4>
                             <p id="pb-status">PDF Files Only</p>
@@ -280,7 +529,7 @@
                     </div>
                     <div class="dz-right">
                         <div class="success-tick" id="pb-successTick">
-                            <div class="success-tick-inner" style="color: var(--rose-600); background-color: var(--rose-50); border-color: #fecdd3;"><i class="ri-check-line"></i> Extracted</div>
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Extracted</div>
                         </div>
                         <div class="dz-btn">Browse File</div>
                     </div>
@@ -288,7 +537,7 @@
                 </div>
 
                 <div class="prog-cont" id="pb-progCont">
-                    <div class="prog-bar" id="pb-progBar" style="background-color: var(--rose-500);"></div>
+                    <div class="prog-bar" id="pb-progBar"></div>
                 </div>
             </div>
 
@@ -314,7 +563,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="col-code" style="color: var(--rose-600); text-align: left;">Code</th>
+                                    <th class="col-code" style="text-align: left;">Code</th>
                                     <th>Description</th>
                                     <th class="col-amt" style="text-align: right;">Debit</th>
                                     <th class="col-amt" style="text-align: right;">Credit</th>
@@ -352,7 +601,7 @@
 
                 <div id="sal-dropBox" class="drop-zone" onclick="document.getElementById('sal-fileIn').click()">
                     <div class="dz-left">
-                        <div class="dz-icon" style="color: var(--brand-500);"><i class="ri-file-pdf-line"></i></div>
+                        <div class="dz-icon"><i class="ri-file-pdf-line"></i></div>
                         <div class="dz-text">
                             <h4 id="sal-statusMsg">Upload PDF Source File</h4>
                             <p id="sal-statusSub">PDF Files Only</p>
@@ -405,10 +654,91 @@
             </div>
 
             <div id="sal-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
-                <div style="padding: 6px 12px; background: var(--slate-100); border: 1px solid var(--slate-200); border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--slate-800);">
+                <div class="total-badge">
                     <span id="sal-totalDisplay">Total: 0.00</span>
                 </div>
                 <button id="sal-dlBtn" class="btn btn-success">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. MIN JV VIEW -->
+        <div id="view-min" class="view-section">
+            
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="header-titles">
+                        <h1>MIN Journal Voucher</h1>
+                        <p>Extract MIN transaction blocks from PDF statements into system CSV format.</p>
+                    </div>
+                    <button id="min-resetBtn" class="btn-reset" onclick="MINJVApp.resetUI()">
+                        <i class="ri-refresh-line"></i> Reset View
+                    </button>
+                </div>
+
+                <div id="min-dropBox" class="drop-zone" onclick="document.getElementById('min-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon"><i class="ri-file-pdf-line"></i></div>
+                        <div class="dz-text">
+                            <h4 id="min-statusMsg">Upload PDF Source File</h4>
+                            <p id="min-statusSub">PDF Files Only</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="min-successTick">
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Extracted</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="min-fileIn" class="hidden" accept=".pdf" onchange="MINJVApp.processFile(event)">
+                </div>
+
+                <div class="prog-cont" id="min-progCont">
+                    <div class="prog-bar" id="min-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header"><span>Extracted MIN Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>MIN Number</th>
+                                    <th>Activity</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="min-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th>Description</th>
+                                    <th class="col-amt" style="text-align: right;">Debit</th>
+                                    <th class="col-amt" style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="min-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="min-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+                <div class="total-badge">
+                    <span id="min-totalDisplay">Total: 0.00</span>
+                </div>
+                <button id="min-dlBtn" class="btn btn-success">
                     <i class="ri-download-2-line"></i> Download CSV
                 </button>
             </div>
@@ -770,6 +1100,158 @@
                 document.getElementById('sal-resetBtn').style.display = "none";
                 document.getElementById('sal-fileIn').value = "";
                 csvData = [];
+            }
+
+            return { processFile, resetUI };
+        })();
+
+        // ==========================================
+        // 4. MIN JV LOGIC MODULE
+        // ==========================================
+        const MINJVApp = (() => {
+            let csvRows = [];
+            let displayRows = []; 
+            let grandTotal = 0;
+            let minNumbers = [];
+
+            async function processFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                document.getElementById('min-srcBody').innerHTML = "";
+                document.getElementById('min-procBody').innerHTML = "";
+                document.getElementById('min-footer').classList.add('hidden');
+                document.getElementById('min-successTick').style.display = "none";
+                document.getElementById('min-progCont').style.display = "block";
+                document.getElementById('min-progBar').style.width = "0%";
+                document.getElementById('min-statusMsg').innerText = "Processing PDF...";
+                document.getElementById('min-statusSub').classList.add('hidden');
+                
+                csvRows = [];
+                displayRows = [];
+                grandTotal = 0;
+                minNumbers = [];
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            let p = Math.round((i / pdf.numPages) * 100);
+                            document.getElementById('min-progBar').style.width = p + '%';
+
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            fullText += content.items.map(item => item.str).join(' ') + "\n";
+                        }
+
+                        const blocks = fullText.split(/(09217-2026-MIN-\d+)/);
+                        
+                        for (let i = 1; i < blocks.length; i += 2) {
+                            const minNo = blocks[i];
+                            const minNumVal = parseInt(minNo.split('-').pop());
+                            if (!isNaN(minNumVal)) {
+                                minNumbers.push(minNumVal);
+                            }
+                            const blockContent = blocks[i+1];
+                            const actMatch = blockContent.match(/Activity\s*:\s*(\d+)/);
+                            
+                            // Logic: 118, 119 සඳහා අගට 0, අනෙක් ඒවාට 1
+                            let codeSuffix = "1";
+                            if(actMatch && (actMatch[1] === "118" || actMatch[1] === "119")) {
+                                codeSuffix = "0";
+                            }
+                            const actCode = actMatch ? "09217" + actMatch[1] + codeSuffix : "092170001";
+                            
+                            const totalMatch = blockContent.match(/T\s*O\s*T\s*A\s*L\s*:\s*([\d,]+\.\d{2})/);
+                            const amount = totalMatch ? parseFloat(totalMatch[1].replace(/,/g, '')) : 0.00;
+                            
+                            grandTotal += amount;
+                            
+                            csvRows.push(`${actCode},${minNo},${amount.toFixed(2)},0`);
+                            displayRows.push({
+                                minNo: minNo,
+                                act: actMatch ? actMatch[1] : "N/A",
+                                code: actCode,
+                                amount: amount
+                            });
+                        }
+
+                        if (displayRows.length === 0) {
+                            alert("No matching MIN records found in the PDF statement.");
+                            resetUI();
+                            return;
+                        }
+
+                        const month = new Date().toLocaleString('default', { month: 'long' });
+                        const minRange = minNumbers.length > 0 
+                            ? `MIN ${Math.min(...minNumbers)} To ${Math.max(...minNumbers)} (${month})`
+                            : `MIN Range (${month})`;
+                        
+                        csvRows.push(`092172020,${minRange},0,${grandTotal.toFixed(2)}`);
+
+                        document.getElementById('min-progCont').style.display = "none";
+                        document.getElementById('min-successTick').style.display = "block";
+                        document.getElementById('min-statusMsg').innerText = "Completed!";
+                        document.getElementById('min-statusMsg').style.color = "var(--success)";
+                        document.getElementById('min-dropBox').classList.add('uploaded');
+                        document.getElementById('min-resetBtn').style.display = "block";
+                        
+                        displayData(minRange);
+
+                    } catch (err) {
+                        alert("PDF Reading Error!");
+                        resetUI();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function displayData(minRange) {
+                const src = document.getElementById('min-srcBody');
+                const proc = document.getElementById('min-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+
+                displayRows.forEach(r => {
+                    src.innerHTML += `<tr><td>${r.minNo}</td><td>${r.act}</td><td class="col-amt">${r.amount.toFixed(2)}</td></tr>`;
+                    proc.innerHTML += `<tr><td class="col-code">${r.code}</td><td>${r.minNo}</td><td class="col-amt">${r.amount.toFixed(2)}</td><td class="col-amt">0.00</td></tr>`;
+                });
+
+                proc.innerHTML += `<tr><td class="col-code">092172020</td><td>${minRange}</td><td class="col-amt zero">0.00</td><td class="col-amt">${grandTotal.toFixed(2)}</td></tr>`;
+
+                document.getElementById('min-totalDisplay').innerText = "Total: " + grandTotal.toLocaleString('en-US', {minimumFractionDigits:2});
+                document.getElementById('min-footer').classList.remove('hidden');
+
+                document.getElementById('min-dlBtn').onclick = () => {
+                    const blob = new Blob([csvRows.join("\n")], { type: 'text/csv' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "Final_JV_Data.csv";
+                    a.click();
+                };
+            }
+
+            function resetUI() {
+                document.getElementById('min-srcBody').innerHTML = "";
+                document.getElementById('min-procBody').innerHTML = "";
+                document.getElementById('min-footer').classList.add('hidden');
+                
+                let msg = document.getElementById('min-statusMsg');
+                msg.innerText = "Upload PDF Source File";
+                msg.style.color = "var(--text-main)";
+                
+                document.getElementById('min-statusSub').classList.remove('hidden');
+                document.getElementById('min-dropBox').classList.remove('uploaded');
+                document.getElementById('min-successTick').style.display = "none";
+                document.getElementById('min-resetBtn').style.display = "none";
+                document.getElementById('min-fileIn').value = "";
+                csvRows = [];
+                displayRows = [];
+                grandTotal = 0;
+                minNumbers = [];
             }
 
             return { processFile, resetUI };

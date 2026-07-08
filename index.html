@@ -80,6 +80,13 @@
             --accent-rgb: 249, 115, 22;
         }
 
+        #view-irn {
+            --accent: #0d9488;
+            --accent-hover: #0f766e;
+            --accent-light: #f0fdfa;
+            --accent-rgb: 13, 148, 136;
+        }
+
         * { 
             box-sizing: border-box; 
             margin: 0; 
@@ -191,6 +198,13 @@
             border-left-color: #f97316; 
         }
         .nav-link[onclick*="'mrn'"].active i { color: #f97316; }
+
+        .nav-link[onclick*="'irn'"].active { 
+            color: #0d9488; 
+            background: rgba(13, 148, 136, 0.08); 
+            border-left-color: #0d9488; 
+        }
+        .nav-link[onclick*="'irn'"].active i { color: #0d9488; }
 
         .user-profile { 
             padding: 16px 20px; 
@@ -661,6 +675,9 @@
             </button>
             <button onclick="switchTab('mrn', this)" class="nav-link">
                 <i class="ri-file-text-line"></i> MRN JV Extractor
+            </button>
+            <button onclick="switchTab('irn', this)" class="nav-link">
+                <i class="ri-file-shield-line"></i> IRN JV Extractor
             </button>
         </nav>
 
@@ -1164,6 +1181,89 @@
             </div>
         </div>
 
+        <!-- 7. IRN JV VIEW -->
+        <div id="view-irn" class="view-section">
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="header-titles">
+                        <h1>IRN JV Extractor</h1>
+                        <p>Extract IRN transaction blocks from PDF statements into system CSV format.</p>
+                    </div>
+                    <button id="irn-resetBtn" class="btn-reset" onclick="IRNApp.resetUI()">
+                        <i class="ri-refresh-line"></i> Reset View
+                    </button>
+                </div>
+
+                <div id="irn-dropBox" class="drop-zone" onclick="document.getElementById('irn-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon"><i class="ri-file-pdf-fill"></i></div>
+                        <div class="dz-text">
+                            <h4 id="irn-statusMsg">Upload IRN PDF Statement</h4>
+                            <p id="irn-statusSub">PDF Files Only</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="irn-successTick">
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Extracted</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="irn-fileIn" class="hidden" accept=".pdf" onchange="IRNApp.processFile(event)">
+                </div>
+
+                <div class="prog-cont" id="irn-progCont">
+                    <div class="prog-bar" id="irn-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Left Panel: Extracted IRN Data -->
+                <div class="panel">
+                    <div class="panel-header"><span>Extracted IRN Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>IRN Number</th>
+                                    <th>MTN Number</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="irn-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Right Panel: System CSV Format -->
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format Preview</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th class="col-desc">Particulars</th>
+                                    <th class="col-amt" style="text-align: right;">DR Amount</th>
+                                    <th class="col-amt" style="text-align: right;">CR Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="irn-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div id="irn-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+                <div class="total-badge">
+                    <span id="irn-totalDisplay">Total: 0.00</span>
+                </div>
+                <button id="irn-dlBtn" class="btn btn-success" onclick="IRNApp.saveCSV()">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
     </main>
 
     <!-- ================= LOGIC & SCRIPTS ================= -->
@@ -1181,6 +1281,7 @@
             min: { accent: '#7c3aed', hover: '#6d28d9', light: '#f5f3ff', rgb: '124, 58, 237' },
             mtn: { accent: '#6366f1', hover: '#4f46e5', light: '#eef2ff', rgb: '99, 102, 241' },
             mrn: { accent: '#f97316', hover: '#ea580c', light: '#fff7ed', rgb: '249, 115, 22' },
+            irn: { accent: '#0d9488', hover: '#0f766e', light: '#f0fdfa', rgb: '13, 148, 136' },
         };
 
         function switchTab(tabId, element) {
@@ -2351,6 +2452,189 @@
             }
 
             return { processFile, renderTables, updateXXX, handleKeydown, saveCSV, resetUI };
+        })();
+
+        // ==========================================
+        // 7. IRN JV LOGIC MODULE
+        // ==========================================
+        const IRNApp = (() => {
+            let processedData = [];
+            let extractedBlocks = [];
+
+            async function processFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                document.getElementById('irn-srcBody').innerHTML = "";
+                document.getElementById('irn-procBody').innerHTML = "";
+                document.getElementById('irn-footer').classList.add('hidden');
+                document.getElementById('irn-successTick').style.display = "none";
+                document.getElementById('irn-progCont').style.display = "block";
+                document.getElementById('irn-progBar').style.width = "0%";
+                document.getElementById('irn-statusMsg').innerText = "Processing PDF...";
+                document.getElementById('irn-statusSub').classList.add('hidden');
+
+                processedData = [];
+                extractedBlocks = [];
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            let p = Math.round((i / pdf.numPages) * 100);
+                            document.getElementById('irn-progBar').style.width = p + '%';
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            fullText += content.items.map(item => item.str).join(' ') + "\n";
+                        }
+
+                        // Regex matching — IRN, MTN, and TOTAL per block
+                        const irnRegex = /(\d{5}-\d{4}-IRN-\d+)/g;
+                        const mtnRegex = /(\d{5}-\d{4}-MTN-\d+)/g;
+                        const totalRegex = /([\d,]+\.\d{2})\s*T\s*O\s*T\s*A\s*L\s*:/g;
+
+                        const irns   = [...fullText.matchAll(irnRegex)].map(m => m[1]);
+                        const mtns   = [...fullText.matchAll(mtnRegex)].map(m => m[1]);
+                        const totals = [...fullText.matchAll(totalRegex)].map(m => m[1]);
+
+                        const maxBlocks = Math.max(irns.length, mtns.length, totals.length);
+
+                        if (maxBlocks === 0) {
+                            alert("No matching IRN/MTN blocks found in this PDF report.");
+                            resetUI();
+                            return;
+                        }
+
+                        for (let i = 0; i < maxBlocks; i++) {
+                            const irnVal   = irns[i]   || "";
+                            const mtnVal   = mtns[i]   || "";
+                            const totalStr = totals[i] || "0.00";
+                            const amt = parseFloat(totalStr.replace(/,/g, '')) || 0;
+                            extractedBlocks.push({ irn: irnVal, mtn: mtnVal, amt });
+                        }
+
+                        // Sort ascending by IRN suffix number
+                        extractedBlocks.sort((a, b) => {
+                            const numA = parseInt(a.irn.split('-').pop()) || 0;
+                            const numB = parseInt(b.irn.split('-').pop()) || 0;
+                            return numA - numB;
+                        });
+
+                        // Build double-entry processedData
+                        let grandTotalValue = 0;
+                        extractedBlocks.forEach(b => {
+                            if (b.irn && b.mtn) {
+                                const siteCode = b.irn.substring(0, 5);
+                                const desc = `${b.irn} [ MTN No - ${b.mtn} ]`;
+
+                                // Debit row: SiteCode + "2020"
+                                processedData.push({ code: `${siteCode}2020`, desc, debit: b.amt, credit: 0 });
+                                // Credit row: SiteCode + "2030"
+                                processedData.push({ code: `${siteCode}2030`, desc, debit: 0, credit: b.amt });
+
+                                grandTotalValue += b.amt;
+                            }
+                        });
+
+                        document.getElementById('irn-progCont').style.display = "none";
+                        document.getElementById('irn-successTick').style.display = "block";
+                        document.getElementById('irn-statusMsg').innerText = "Completed!";
+                        document.getElementById('irn-statusMsg').style.color = "var(--accent)";
+                        document.getElementById('irn-dropBox').classList.add('uploaded');
+                        document.getElementById('irn-resetBtn').style.display = "block";
+
+                        renderTables(grandTotalValue);
+
+                    } catch (err) {
+                        alert("PDF Reading Error!");
+                        resetUI();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = "";
+            }
+
+            function renderTables(grandTotalValue) {
+                const src  = document.getElementById('irn-srcBody');
+                const proc = document.getElementById('irn-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+
+                const fmtAmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                // Left panel — raw extracted blocks
+                extractedBlocks.forEach(b => {
+                    src.innerHTML += `<tr>
+                        <td>${b.irn}</td>
+                        <td>${b.mtn}</td>
+                        <td class="col-amt">${fmtAmt(b.amt)}</td>
+                    </tr>`;
+                });
+
+                // Right panel — editable code chip + double entries
+                processedData.forEach((r, idx) => {
+                    proc.innerHTML += `<tr>
+                        <td>
+                            <span class="code-chip-wrap">
+                                <i class="ri-pencil-line chip-icon"></i>
+                                <input type="text" class="edit-code-input"
+                                       value="${r.code}"
+                                       onchange="IRNApp.updateCode(${idx}, this.value)">
+                            </span>
+                        </td>
+                        <td class="col-desc">${r.desc}</td>
+                        <td class="col-amt ${r.debit  === 0 ? 'zero' : ''}">${fmtAmt(r.debit)}</td>
+                        <td class="col-amt ${r.credit === 0 ? 'zero' : ''}">${fmtAmt(r.credit)}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('irn-totalDisplay').innerText =
+                    "Total: " + grandTotalValue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById('irn-footer').classList.remove('hidden');
+            }
+
+            function updateCode(idx, newCode) {
+                if (processedData[idx]) {
+                    processedData[idx].code = newCode.replace(/\s+/g, '');
+                }
+            }
+
+            function saveCSV() {
+                if (processedData.length === 0) return;
+                let csv = "";
+                processedData.forEach(r => {
+                    csv += `${r.code},${r.desc},${r.debit.toFixed(2)},${r.credit.toFixed(2)}\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "IRN_JV_System.csv";
+                a.click();
+            }
+
+            function resetUI() {
+                document.getElementById('irn-srcBody').innerHTML = "";
+                document.getElementById('irn-procBody').innerHTML = "";
+                document.getElementById('irn-footer').classList.add('hidden');
+
+                const msg = document.getElementById('irn-statusMsg');
+                msg.innerText = "Upload IRN PDF Statement";
+                msg.style.color = "var(--text-main)";
+
+                document.getElementById('irn-statusSub').classList.remove('hidden');
+                document.getElementById('irn-dropBox').classList.remove('uploaded');
+                document.getElementById('irn-successTick').style.display = "none";
+                document.getElementById('irn-resetBtn').style.display = "none";
+                document.getElementById('irn-fileIn').value = "";
+
+                processedData = [];
+                extractedBlocks = [];
+            }
+
+            return { processFile, renderTables, updateCode, saveCSV, resetUI };
         })();
 
         // Global Custom Confirm Modal logic

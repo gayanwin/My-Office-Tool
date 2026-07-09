@@ -87,6 +87,13 @@
             --accent-rgb: 13, 148, 136;
         }
 
+        #view-grn {
+            --accent: #d97706;
+            --accent-hover: #b45309;
+            --accent-light: #fffbeb;
+            --accent-rgb: 217, 119, 6;
+        }
+
         * { 
             box-sizing: border-box; 
             margin: 0; 
@@ -205,6 +212,13 @@
             border-left-color: #0d9488; 
         }
         .nav-link[onclick*="'irn'"].active i { color: #0d9488; }
+
+        .nav-link[onclick*="'grn'"].active { 
+            color: #d97706; 
+            background: rgba(217, 119, 6, 0.08); 
+            border-left-color: #d97706; 
+        }
+        .nav-link[onclick*="'grn'"].active i { color: #d97706; }
 
         .user-profile { 
             padding: 16px 20px; 
@@ -414,40 +428,60 @@
         .code-chip-wrap {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            background: rgba(var(--accent-rgb), 0.07);
-            border: 1.5px solid rgba(var(--accent-rgb), 0.18);
-            border-radius: 6px;
-            padding: 3px 7px 3px 8px;
+            gap: 5px;
+            background: rgba(var(--accent-rgb), 0.06);
+            border: 1.5px solid rgba(var(--accent-rgb), 0.22);
+            border-left: 3px solid var(--accent);
+            border-radius: 7px;
+            padding: 4px 9px 4px 7px;
             transition: all 0.18s;
             cursor: text;
-            max-width: 110px;
+            max-width: 120px;
+            min-width: 82px;
         }
         .code-chip-wrap:hover {
-            background: rgba(var(--accent-rgb), 0.12);
-            border-color: rgba(var(--accent-rgb), 0.35);
+            background: rgba(var(--accent-rgb), 0.11);
+            border-color: rgba(var(--accent-rgb), 0.4);
+            border-left-color: var(--accent);
+            box-shadow: 0 1px 4px rgba(var(--accent-rgb), 0.12);
         }
         .code-chip-wrap:focus-within {
             background: #fff;
             border-color: var(--accent);
+            border-left-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
         }
         .code-chip-wrap .chip-icon {
             color: var(--accent);
-            font-size: 10px;
-            opacity: 0.6;
+            font-size: 11px;
+            opacity: 0.55;
             flex-shrink: 0;
             pointer-events: none;
+            line-height: 1;
         }
         .code-chip-wrap:focus-within .chip-icon { opacity: 1; }
-        .edit-code-input {
+        /* Input INSIDE code chip: accent color, monospace */
+        .code-chip-wrap .edit-code-input {
             background: transparent;
             border: none;
             outline: none;
             color: var(--accent);
             font-family: 'Courier New', monospace;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 11.5px;
+            width: 84px;
+            min-width: 0;
+            letter-spacing: 0.02em;
+        }
+        /* Standalone edit input (description / supplier / PO fields) */
+        .edit-code-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--slate-800);
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 12px;
             width: 80px;
             min-width: 0;
         }
@@ -678,6 +712,9 @@
             </button>
             <button onclick="switchTab('irn', this)" class="nav-link">
                 <i class="ri-file-shield-line"></i> IRN JV Extractor
+            </button>
+            <button onclick="switchTab('grn', this)" class="nav-link">
+                <i class="ri-bill-line"></i> GRN JV Extractor
             </button>
         </nav>
 
@@ -961,26 +998,51 @@
                 <div class="panel" id="min-split-panel" style="flex: 0 0 380px;">
                     <div class="panel-header"><span>Split Transaction Manager</span></div>
                     <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Select Target MIN</label>
-                            <div class="min-custom-dropdown">
-                                <input type="text" id="min-split-search" placeholder="-- No PDF Loaded --" autocomplete="off" oninput="MINJVApp.filterDropdown(this.value)" onfocus="MINJVApp.filterDropdown(this.value)" onblur="setTimeout(() => MINJVApp.hideDropdown(), 200)">
-                                <div class="min-dropdown-list" id="min-dropdown-list" style="display:none;"></div>
-                            </div>
-                            <input type="hidden" id="min-split-select">
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Select Target MIN</label>
+                        <div class="min-custom-dropdown">
+                            <input type="text" id="min-split-search" placeholder="-- No PDF Loaded --" autocomplete="off" oninput="MINJVApp.filterDropdown(this.value)" onfocus="MINJVApp.filterDropdown(this.value)" onblur="setTimeout(() => MINJVApp.hideDropdown(), 200)">
+                            <div class="min-dropdown-list" id="min-dropdown-list" style="display:none;"></div>
+                        </div>
+                        <input type="hidden" id="min-split-select">
+                    </div>
+
+                    <!-- Description + Code apply section -->
+                    <div style="background: rgba(var(--accent-rgb),0.04); border: 1px solid rgba(var(--accent-rgb),0.15); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 5px;">
+                            <i class="ri-edit-2-line"></i> Edit Selected MIN
                         </div>
                         <div>
-                            <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Return Code (XXX)</label>
-                            <input type="text" id="min-split-code" placeholder="e.g. 118" maxlength="3" style="width: 100%; padding: 8px; border: 1px solid var(--slate-300); border-radius: 6px; font-size: 12.5px; font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent); height: 34px;">
+                            <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 5px; display: block;">Description</label>
+                            <input type="text" id="min-desc-input" placeholder="e.g. Payment for Services..." style="width: 100%; padding: 7px 10px; border: 1.5px solid var(--slate-300); border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--slate-800); background: #fff; height: 34px; outline: none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--slate-300)'">
                         </div>
                         <div>
-                            <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Split Amount</label>
-                            <input type="number" id="min-split-amount" placeholder="Amount to split" step="0.01" style="width: 100%; padding: 8px; border: 1px solid var(--slate-300); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--slate-700); height: 34px;">
+                            <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 5px; display: block;">Account Code</label>
+                            <input type="text" id="min-code-input" placeholder="e.g. 092246101" style="width: 100%; padding: 7px 10px; border: 1.5px solid var(--slate-300); border-radius: 6px; font-size: 12px; font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent); background: #fff; height: 34px; outline: none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--slate-300)'">
                         </div>
-                        <button onclick="MINJVApp.addSplit()" class="btn btn-success" style="width: 100%; justify-content: center; margin-top: 8px; background: var(--accent);">
-                            <i class="ri-split-cells-horizontal"></i> Split Amount
+                        <button onclick="MINJVApp.applyDescCode()" class="btn" style="width: 100%; justify-content: center; background: var(--accent); color: #fff; padding: 7px; font-size: 12px;">
+                            <i class="ri-check-double-line"></i> Apply to MIN
                         </button>
                     </div>
+
+                    <!-- Divider -->
+                    <div style="border-top: 1.5px dashed rgba(var(--accent-rgb),0.2); margin: 2px 0;"></div>
+                    <div style="font-size: 10px; font-weight: 800; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 5px;">
+                        <i class="ri-split-cells-horizontal"></i> Split Amount
+                    </div>
+
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Return Code (XXX)</label>
+                        <input type="text" id="min-split-code" placeholder="e.g. 118" maxlength="3" style="width: 100%; padding: 8px; border: 1px solid var(--slate-300); border-radius: 6px; font-size: 12.5px; font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent); height: 34px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 6px; display: block;">Split Amount</label>
+                        <input type="number" id="min-split-amount" placeholder="Amount to split" step="0.01" style="width: 100%; padding: 8px; border: 1px solid var(--slate-300); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--slate-700); height: 34px;">
+                    </div>
+                    <button onclick="MINJVApp.addSplit()" class="btn btn-success" style="width: 100%; justify-content: center; margin-top: 2px; background: var(--accent);">
+                        <i class="ri-split-cells-horizontal"></i> Split Amount
+                    </button>
+                </div>
                 </div>
                 
                 <div class="panel">
@@ -1264,6 +1326,90 @@
             </div>
         </div>
 
+        <!-- 8. GRN JV VIEW -->
+        <div id="view-grn" class="view-section">
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="header-titles">
+                        <h1>GRN JV Extractor</h1>
+                        <p>Extract GRN receipt blocks from PDF statements into system CSV format.</p>
+                    </div>
+                    <button id="grn-resetBtn" class="btn-reset" onclick="GRNApp.resetUI()">
+                        <i class="ri-refresh-line"></i> Reset View
+                    </button>
+                </div>
+
+                <div id="grn-dropBox" class="drop-zone" onclick="document.getElementById('grn-fileIn').click()">
+                    <div class="dz-left">
+                        <div class="dz-icon"><i class="ri-file-pdf-fill"></i></div>
+                        <div class="dz-text">
+                            <h4 id="grn-statusMsg">Upload GRN PDF Statement</h4>
+                            <p id="grn-statusSub">PDF Files Only</p>
+                        </div>
+                    </div>
+                    <div class="dz-right">
+                        <div class="success-tick" id="grn-successTick">
+                            <div class="success-tick-inner"><i class="ri-check-line"></i> Extracted</div>
+                        </div>
+                        <div class="dz-btn">Browse File</div>
+                    </div>
+                    <input type="file" id="grn-fileIn" class="hidden" accept=".pdf" onchange="GRNApp.processFile(event)">
+                </div>
+
+                <div class="prog-cont" id="grn-progCont">
+                    <div class="prog-bar" id="grn-progBar"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Left Panel: Extracted GRN Data -->
+                <div class="panel">
+                    <div class="panel-header"><span>Extracted GRN Data</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>GRN Number</th>
+                                    <th>Supplier</th>
+                                    <th>PO No</th>
+                                    <th class="col-amt" style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grn-srcBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Panel: System CSV Format -->
+                <div class="panel">
+                    <div class="panel-header"><span>System CSV Format Preview</span></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-code" style="text-align: left;">Code</th>
+                                    <th class="col-desc">Particulars</th>
+                                    <th class="col-amt" style="text-align: right;">DR Amount</th>
+                                    <th class="col-amt" style="text-align: right;">CR Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grn-procBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div id="grn-footer" class="action-footer hidden" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+                <div class="total-badge">
+                    <span id="grn-totalDisplay">Total: 0.00</span>
+                </div>
+                <button id="grn-dlBtn" class="btn btn-success" onclick="GRNApp.saveCSV()">
+                    <i class="ri-download-2-line"></i> Download CSV
+                </button>
+            </div>
+        </div>
+
     </main>
 
     <!-- ================= LOGIC & SCRIPTS ================= -->
@@ -1282,6 +1428,7 @@
             mtn: { accent: '#6366f1', hover: '#4f46e5', light: '#eef2ff', rgb: '99, 102, 241' },
             mrn: { accent: '#f97316', hover: '#ea580c', light: '#fff7ed', rgb: '249, 115, 22' },
             irn: { accent: '#0d9488', hover: '#0f766e', light: '#f0fdfa', rgb: '13, 148, 136' },
+            grn: { accent: '#d97706', hover: '#b45309', light: '#fffbeb', rgb: '217, 119, 6' },
         };
 
         function switchTab(tabId, element) {
@@ -1724,6 +1871,7 @@
                             
                             displayRows.push({
                                 minNo: minNo,
+                                desc: minNo,
                                 act: actMatch ? actMatch[1] : "N/A",
                                 code: actCode,
                                 amount: amount,
@@ -1773,6 +1921,14 @@
                 }
             }
 
+            function updateDesc(idx, newDesc) {
+                if (displayRows[idx]) {
+                    displayRows[idx].desc = newDesc;
+                    // Rebuild csvRows entry without full re-render (preserves focus)
+                    csvRows[idx] = `${displayRows[idx].code},${newDesc},${displayRows[idx].amount.toFixed(2)},0`;
+                }
+            }
+
             function updateCreditCode(newCode) {
                 creditEntryCode = newCode.replace(/\s+/g, '');
                 displayData(currentMinRange);
@@ -1815,12 +1971,12 @@
                 displayRows.forEach((r, idx) => {
                     proc.innerHTML += `<tr>
                         <td class="col-code">
-                            <span class="code-chip-wrap">
-                                <i class="ri-pencil-line chip-icon"></i>
-                                <input type="text" class="edit-code-input" value="${r.code}" onchange="MINJVApp.updateCode(${idx}, this.value)">
+                            <span class="code-chip-wrap" style="cursor:default;">
+                                <i class="ri-hashtag chip-icon"></i>
+                                <span style="font-family:'Courier New',monospace;font-weight:700;font-size:11.5px;color:var(--accent);letter-spacing:0.02em;">${r.code}</span>
                             </span>
                         </td>
-                        <td class="col-desc">${r.minNo}</td>
+                        <td class="col-desc" style="color:var(--slate-800);font-weight:500;">${r.desc !== undefined ? r.desc : r.minNo}</td>
                         <td class="col-amt ${r.amount === 0 ? 'zero' : ''}">${fmtAmt(r.amount)}</td>
                         <td class="col-amt zero">0.00</td>
                         <td style="text-align: center;">
@@ -1828,7 +1984,7 @@
                         </td>
                     </tr>`;
                     
-                    csvRows.push(`${r.code},${r.minNo},${r.amount.toFixed(2)},0`);
+                    csvRows.push(`${r.code},${r.desc !== undefined ? r.desc : r.minNo},${r.amount.toFixed(2)},0`);
                 });
 
                 proc.innerHTML += `<tr>
@@ -1897,7 +2053,12 @@
                 document.getElementById('min-split-search').value = value;
                 document.getElementById('min-split-select').value = value;
                 document.getElementById('min-dropdown-list').style.display = 'none';
-                // Move focus to return code field
+                // Auto-fill desc + code inputs for the selected MIN
+                const row = displayRows.find(r => r.minNo === value && !r.isSplitChild);
+                if (row) {
+                    document.getElementById('min-desc-input').value = row.desc !== undefined ? row.desc : row.minNo;
+                    document.getElementById('min-code-input').value = row.code || '';
+                }
                 document.getElementById('min-split-code').focus();
             }
 
@@ -1953,6 +2114,7 @@
                 const siteCode = minNo.substring(0, 5);
                 const newRecord = {
                     minNo: minNo,
+                    desc: minNo,
                     act: returnCode,
                     code: `${siteCode}${returnCode}1`,
                     amount: splitAmount,
@@ -1969,6 +2131,32 @@
 
                 displayData(currentMinRange);
                 updateSplitSelectOptions();
+            }
+
+            function applyDescCode() {
+                const selectedMin = document.getElementById('min-split-select').value.trim();
+                const newDesc = document.getElementById('min-desc-input').value.trim();
+                const newCode = document.getElementById('min-code-input').value.trim().replace(/\s+/g, '');
+
+                if (!selectedMin) { alert('Please select a MIN first.'); return; }
+                if (!newDesc && !newCode) { alert('Enter a description or code to apply.'); return; }
+
+                let applied = false;
+                displayRows.forEach(r => {
+                    if (r.minNo === selectedMin && !r.isSplitChild) {
+                        if (newDesc) r.desc = newDesc;
+                        if (newCode) r.code = newCode;
+                        applied = true;
+                    }
+                });
+
+                if (applied) {
+                    displayData(currentMinRange);
+                    document.getElementById('min-desc-input').value = '';
+                    document.getElementById('min-code-input').value = '';
+                    document.getElementById('min-split-select').value = '';
+                    document.getElementById('min-split-search').value = '';
+                }
             }
 
             function resetUI() {
@@ -1999,7 +2187,7 @@
                 currentMinRange = "";
             }
 
-            return { processFile, resetUI, addSplit, filterDropdown, selectMin, hideDropdown, updateCode, deleteRow, updateCreditCode };
+            return { processFile, resetUI, addSplit, filterDropdown, selectMin, hideDropdown, updateCode, updateDesc, applyDescCode, deleteRow, updateCreditCode };
         })();
 
         // ==========================================
@@ -2635,6 +2823,255 @@
             }
 
             return { processFile, renderTables, updateCode, saveCSV, resetUI };
+        })();
+
+        // ==========================================
+        // 8. GRN JV LOGIC MODULE
+        // ==========================================
+        const GRNApp = (() => {
+            let processedData = [];
+            let extractedBlocks = []; // { grn, supplierRaw, supplierDisplay, po, amt }
+
+            // Build the description string based on supplier + PO rules
+            function buildDescription(grnNo, supplierDisplay, poRaw) {
+                const grnSpaced = grnNo.split('-').join(' - ');
+                const po = poRaw.trim();
+
+                // Rule 1: supplierDisplay is exactly 'STC' → STC + short PO
+                if (supplierDisplay.trim().toUpperCase() === 'STC') {
+                    const poShort = po.replace(/^PO-\s*/i, '').replace(/\s*-\s*$/, '').trim();
+                    return `${grnSpaced} - STC - PO ${poShort}`;
+                }
+
+                // Rule 2: Long PO (contains '/') → supplier + last YYYY/NN segment
+                if (po.includes('/')) {
+                    const matches = po.match(/\d{4}\/\d+/g);
+                    if (matches && matches.length > 0) {
+                        const lastSeg = matches[matches.length - 1];
+                        return `${grnSpaced} - ${supplierDisplay} - ${lastSeg}`;
+                    }
+                }
+
+                // Rule 3: Simple PO → just supplier name
+                return `${grnSpaced} - ${supplierDisplay}`;
+            }
+
+            // Clean raw supplier name from PDF — auto-abbreviates STATE TRADING → STC
+            function cleanSupplier(raw) {
+                if (raw.toUpperCase().includes('STATE TRADING')) return 'STC';
+                return raw
+                    .replace(/\bAND\b/g, '&')
+                    .replace(/\bPVT LTD\b/g, '( PVT ) LTD')
+                    .replace(/\bPVT\.LTD\b/g, '( PVT ) LTD')
+                    .trim();
+            }
+
+            async function processFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                document.getElementById('grn-srcBody').innerHTML = "";
+                document.getElementById('grn-procBody').innerHTML = "";
+                document.getElementById('grn-footer').classList.add('hidden');
+                document.getElementById('grn-successTick').style.display = "none";
+                document.getElementById('grn-progCont').style.display = "block";
+                document.getElementById('grn-progBar').style.width = "0%";
+                document.getElementById('grn-statusMsg').innerText = "Processing PDF...";
+                document.getElementById('grn-statusSub').classList.add('hidden');
+
+                processedData = [];
+                extractedBlocks = [];
+
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            let p = Math.round((i / pdf.numPages) * 100);
+                            document.getElementById('grn-progBar').style.width = p + '%';
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            fullText += content.items.map(item => item.str).join(' ') + "\n";
+                        }
+
+                        // Extract GRN numbers, suppliers, PO numbers, and totals
+                        const grnRegex      = /(\d{5}-\d{4}-GRN-\d+)/g;
+                        const supplierRegex = /Supplier\s*:\s*(.+?)\s{2,}PO No\./g;
+                        const poRegex       = /PO No\.\s+:\s+(.+?)\s{2,}GRN No\./g;
+                        const totalRegex    = /([\d,]+\.\d{2})\s*T\s*O\s*T\s*A\s*L\s*:/g;
+
+                        const grns      = [...fullText.matchAll(grnRegex)].map(m => m[1]);
+                        const suppliers = [...fullText.matchAll(supplierRegex)].map(m => m[1].trim());
+                        const pos       = [...fullText.matchAll(poRegex)].map(m => m[1].trim());
+                        const totals    = [...fullText.matchAll(totalRegex)].map(m => m[1]);
+
+                        const maxBlocks = Math.max(grns.length, suppliers.length, totals.length);
+
+                        if (maxBlocks === 0) {
+                            alert("No matching GRN blocks found in this PDF report.");
+                            resetUI();
+                            return;
+                        }
+
+                        for (let i = 0; i < maxBlocks; i++) {
+                            const grnVal      = grns[i]      || "";
+                            const supplierRaw = suppliers[i] || "";
+                            const poVal       = pos[i]       || "";
+                            const totalStr    = totals[i]    || "0.00";
+                            const amt = parseFloat(totalStr.replace(/,/g, '')) || 0;
+                            const supplierDisplay = cleanSupplier(supplierRaw);
+                            extractedBlocks.push({ grn: grnVal, supplierRaw, supplierDisplay, po: poVal, amt });
+                        }
+
+                        // Sort ascending by GRN suffix
+                        extractedBlocks.sort((a, b) => {
+                            const numA = parseInt(a.grn.split('-').pop()) || 0;
+                            const numB = parseInt(b.grn.split('-').pop()) || 0;
+                            return numA - numB;
+                        });
+
+                        // Build double-entry rows
+                        let grandTotalValue = 0;
+                        extractedBlocks.forEach(b => {
+                            if (b.grn) {
+                                const siteCode = b.grn.substring(0, 5);
+                                const desc = buildDescription(b.grn, b.supplierDisplay, b.po);
+
+                                // Debit row: SiteCode + "2020"
+                                processedData.push({ code: `${siteCode}2020`, desc, debit: b.amt, credit: 0 });
+                                // Credit row: SiteCode + "4430"
+                                processedData.push({ code: `${siteCode}4430`, desc, debit: 0, credit: b.amt });
+
+                                grandTotalValue += b.amt;
+                            }
+                        });
+
+                        document.getElementById('grn-progCont').style.display = "none";
+                        document.getElementById('grn-successTick').style.display = "block";
+                        document.getElementById('grn-statusMsg').innerText = "Completed!";
+                        document.getElementById('grn-statusMsg').style.color = "var(--accent)";
+                        document.getElementById('grn-dropBox').classList.add('uploaded');
+                        document.getElementById('grn-resetBtn').style.display = "block";
+
+                        renderTables(grandTotalValue);
+
+                    } catch (err) {
+                        alert("PDF Reading Error!");
+                        resetUI();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = "";
+            }
+
+            function renderTables(grandTotalValue) {
+                const src  = document.getElementById('grn-srcBody');
+                const proc = document.getElementById('grn-procBody');
+                src.innerHTML = ""; proc.innerHTML = "";
+
+                const fmtAmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                // Left panel — editable supplier name + editable PO (real-time oninput)
+                extractedBlocks.forEach((b, bIdx) => {
+                    src.innerHTML += `<tr>
+                        <td>${b.grn}</td>
+                        <td><input type="text" class="edit-code-input" style="width:100%;min-width:160px"
+                               value="${b.supplierDisplay}"
+                               oninput="GRNApp.updateSupplier(${bIdx}, this.value)"></td>
+                        <td><input type="text" class="edit-code-input" style="width:100%;min-width:110px;font-size:11px"
+                               value="${b.po}"
+                               oninput="GRNApp.updatePO(${bIdx}, this.value)"></td>
+                        <td class="col-amt">${fmtAmt(b.amt)}</td>
+                    </tr>`;
+                });
+
+                // Right panel — editable code chip + double entries
+                processedData.forEach((r, idx) => {
+                    proc.innerHTML += `<tr>
+                        <td>
+                            <span class="code-chip-wrap">
+                                <i class="ri-pencil-line chip-icon"></i>
+                                <input type="text" class="edit-code-input"
+                                       value="${r.code}"
+                                       onchange="GRNApp.updateCode(${idx}, this.value)">
+                            </span>
+                        </td>
+                        <td class="col-desc" id="grn-desc-${idx}">${r.desc}</td>
+                        <td class="col-amt ${r.debit  === 0 ? 'zero' : ''}">${fmtAmt(r.debit)}</td>
+                        <td class="col-amt ${r.credit === 0 ? 'zero' : ''}">${fmtAmt(r.credit)}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('grn-totalDisplay').innerText =
+                    "Total: " + grandTotalValue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById('grn-footer').classList.remove('hidden');
+            }
+
+            // Update account code from right panel chip
+            function updateCode(idx, newCode) {
+                if (processedData[idx]) {
+                    processedData[idx].code = newCode.replace(/\s+/g, '');
+                }
+            }
+
+            // Update supplier name from left panel and rebuild descriptions (real-time)
+            function updateSupplier(blockIdx, newSupplier) {
+                if (!extractedBlocks[blockIdx]) return;
+                extractedBlocks[blockIdx].supplierDisplay = newSupplier;
+                const b = extractedBlocks[blockIdx];
+                const newDesc = buildDescription(b.grn, b.supplierDisplay, b.po);
+                const dataIdx = blockIdx * 2;
+                if (processedData[dataIdx])     { processedData[dataIdx].desc = newDesc;     document.getElementById('grn-desc-' + dataIdx).innerText = newDesc; }
+                if (processedData[dataIdx + 1]) { processedData[dataIdx + 1].desc = newDesc; document.getElementById('grn-desc-' + (dataIdx + 1)).innerText = newDesc; }
+            }
+
+            // Update PO number from left panel and rebuild descriptions (real-time)
+            function updatePO(blockIdx, newPO) {
+                if (!extractedBlocks[blockIdx]) return;
+                extractedBlocks[blockIdx].po = newPO;
+                const b = extractedBlocks[blockIdx];
+                const newDesc = buildDescription(b.grn, b.supplierDisplay, b.po);
+                const dataIdx = blockIdx * 2;
+                if (processedData[dataIdx])     { processedData[dataIdx].desc = newDesc;     document.getElementById('grn-desc-' + dataIdx).innerText = newDesc; }
+                if (processedData[dataIdx + 1]) { processedData[dataIdx + 1].desc = newDesc; document.getElementById('grn-desc-' + (dataIdx + 1)).innerText = newDesc; }
+            }
+
+            function saveCSV() {
+                if (processedData.length === 0) return;
+                let csv = "";
+                processedData.forEach(r => {
+                    csv += `${r.code},${r.desc},${r.debit.toFixed(2)},${r.credit.toFixed(2)}\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "GRN_JV_System.csv";
+                a.click();
+            }
+
+            function resetUI() {
+                document.getElementById('grn-srcBody').innerHTML = "";
+                document.getElementById('grn-procBody').innerHTML = "";
+                document.getElementById('grn-footer').classList.add('hidden');
+
+                const msg = document.getElementById('grn-statusMsg');
+                msg.innerText = "Upload GRN PDF Statement";
+                msg.style.color = "var(--text-main)";
+
+                document.getElementById('grn-statusSub').classList.remove('hidden');
+                document.getElementById('grn-dropBox').classList.remove('uploaded');
+                document.getElementById('grn-successTick').style.display = "none";
+                document.getElementById('grn-resetBtn').style.display = "none";
+                document.getElementById('grn-fileIn').value = "";
+
+                processedData = [];
+                extractedBlocks = [];
+            }
+
+            return { processFile, renderTables, updateCode, updateSupplier, updatePO, saveCSV, resetUI };
         })();
 
         // Global Custom Confirm Modal logic
